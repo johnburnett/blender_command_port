@@ -192,21 +192,15 @@ class CommandPortOperator(bpy.types.Operator):
             command = self.command_port.commands_queue.get_nowait()
             if command:
                 try:
-                    if self.command_port.redirect_output:
-                        output = self.command_port.output_queue
+                    if self.command_port.share_environ:
+                        _locals = dict()
+                        exec(command, globals(), _locals)
+                        globals().update(_locals)
                     else:
-                        output = None
-                    with OutputDuplicator(output_queue=output) as output_duplicator:
-                        if self.command_port.share_environ:
-                            _locals = dict()
-                            exec(command, globals(), _locals)
-                            globals().update(_locals)
-                        else:
-                            exec(command, globals(), {})
-                    result = output_duplicator.last_line
-                except Exception as e:
-                    result = '\n'.join([str(v) for v in e.args])
-                self.command_port.output_queue.put(ResultContainer(value=result))
+                        exec(command, globals(), {})
+                except Exception as ex:
+                    print(f'{ex=}')
+                self.command_port.output_queue.put(ResultContainer(value=''))
         except Empty:
             pass
         if self.timer is None:
