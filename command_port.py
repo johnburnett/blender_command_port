@@ -2,6 +2,7 @@ from collections import namedtuple
 from contextlib import AbstractContextManager
 import json
 import socket
+import sys
 import threading
 from queue import Queue, Empty
 
@@ -14,10 +15,8 @@ import warnings
 
 # --- Stores result of command. Created to make easier detecting result from lines of stdout
 ResultContainer = namedtuple("ResultContainer", ["value"])
-COMMAND_PORT = None
 
-import sys
-sys.path.append(r"/home/pawel/git/tmp2")
+DEFAULT_PORT = 7112
 
 try:
     import pydevd_pycharm
@@ -55,7 +54,7 @@ class OutputDuplicator(AbstractContextManager):
 class CommandPort(threading.Thread):
     """ Command port runs on a separate thread """
 
-    def __init__(self, queue_size=0, timeout=.1, port=5000, buffersize=4096, max_connections=5,
+    def __init__(self, queue_size=0, timeout=.1, port=DEFAULT_PORT, buffersize=4096, max_connections=5,
                  return_result=False, result_as_json=False, redirect_output=False, share_environ=True):
         super(CommandPort, self).__init__()
 
@@ -235,7 +234,7 @@ class CommandPortOperator(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def register(queue_size=0, timeout=.1, port=5000, buffersize=4096, max_connections=5,
+def register(queue_size=0, timeout=.1, port=DEFAULT_PORT, buffersize=4096, max_connections=5,
              return_result=True, result_as_json=False, redirect_output=True, share_environ=True):
     """
     Registers properties. Values of those properties will be used as settings of the command port
