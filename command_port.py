@@ -84,7 +84,6 @@ class CommandPort(threading.Thread):
         while any([t.name == "MainThread" and t.is_alive() for t in threads]):
             if not self.do_run:
                 # ---- Break also if user requested closing the port.
-                print("do_run is False")
                 break
             self.socket.listen(self.max_connections)
             try:
@@ -119,8 +118,6 @@ class CommandPort(threading.Thread):
             except socket.timeout:
                 pass
         self.socket.close()
-        print("Closing the socket")
-        return
 
 
 class CommandPortOperator(bpy.types.Operator):
@@ -170,7 +167,6 @@ class CommandPortOperator(bpy.types.Operator):
                                      "Run 'register_properties' function before opening the port")
             # ---- If properties are working, then re-raise an exception
             raise e
-        print("Command port opened")
 
     def check_property(self):
         if not CommandPortOperator.keep_command_port_running:
@@ -179,11 +175,9 @@ class CommandPortOperator(bpy.types.Operator):
     def close_port(self):
         if self.timer is not None:
             bpy.context.window_manager.event_timer_remove(self.timer)
-        print("Waiting for command port thread to end....")
         self.command_port.do_run = False
         while self.command_port.is_alive():
             pass
-        print("Command port thread was stopped.")
 
     def execute(self, context):
         if not self.command_port.is_alive():
