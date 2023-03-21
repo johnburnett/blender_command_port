@@ -80,11 +80,29 @@ class BLENDERCOMMANDPORT1_PT_Panel(Panel):
             row.operator("wm.open_command_port")
 
 
+@bpy.app.handlers.persistent
+def command_port_load_post(arg):
+    try:
+        bpy.ops.wm.open_command_port()
+    except:
+        pass
+
+
+@bpy.app.handlers.persistent
+def command_port_load_pre(arg):
+    try:
+        bpy.ops.wm.close_command_port()
+    except:
+        pass
+
+
 def register():
     bpy.utils.register_class(OpenCommandPortOperator)
     bpy.utils.register_class(CloseCommandPortOperator)
     register_command_port()
     bpy.utils.register_class(BLENDERCOMMANDPORT1_PT_Panel)
+    bpy.app.handlers.load_pre.append(command_port_load_pre)
+    bpy.app.handlers.load_post.append(command_port_load_post)
 
 
 def unregister():
