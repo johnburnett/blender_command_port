@@ -194,11 +194,25 @@ class CommandPortOperator(bpy.types.Operator):
                         exec(command, globals(), {})
                 except Exception as ex:
                     print(f'{ex=}')
-                self.command_port.output_queue.put(ResultContainer(value=''))
+
+                # ReferenceError can happen if the executed code above causes
+                # Blender to restart the Python interpreter, thereby causing
+                # self to no longer exist (which happens when you load a .blend
+                # file, which... was a choice they made.)
+                try:
+                    self.command_port.output_queue.put(ResultContainer(value=''))
+                except ReferenceError:
+                    pass
         except Empty:
             pass
-        if self.timer is None:
-            self.timer = context.window_manager.event_timer_add(.01, window=context.window)
+
+        try:
+            timer = self.timer
+        except ReferenceError:
+            pass
+        else:
+            if timer is None:
+                self.timer = context.window_manager.event_timer_add(.01, window=context.window)
         return {'PASS_THROUGH'}
 
     def modal(self, context, event):
@@ -223,7 +237,7 @@ class CommandPortOperator(bpy.types.Operator):
 
 
 def register(queue_size=0, timeout=.1, port=DEFAULT_PORT, buffersize=4096, max_connections=5,
-             return_result=True, result_as_json=False, redirect_output=True, share_environ=True):
+             return_result=False, result_as_json=False, redirect_output=False, share_environ=True):
     """
     Registers properties. Values of those properties will be used as settings of the command port
     All properties have "bcp_" prefix, like Blender Command Port
