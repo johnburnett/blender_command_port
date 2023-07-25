@@ -36,9 +36,10 @@ class CloseCommandPortOperator(bpy.types.Operator):
 
     # noinspection PyMethodMayBeStatic
     def execute(self, context):
-        if hasattr(CommandPortOperator, 'instance'):
-            CommandPortOperator.instance.do_run = False
-            while CommandPortOperator.instance.is_alive():
+        instance = getattr(CommandPortOperator, 'instance', None)
+        if instance:
+            instance.do_run = False
+            while instance.is_alive():
                 pass
         else:
             print("Port is not running")
